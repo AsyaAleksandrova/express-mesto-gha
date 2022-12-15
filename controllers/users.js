@@ -15,12 +15,12 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUserById = (req, res) => {
   User
     .findById(req.params.userId)
-    .orFail(() => Error('CastError'))
+    .orFail(() => Error('Not found'))
     .then((user) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
         if (req.params.userId.length === 24) {
           res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
         }

@@ -32,12 +32,12 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   Card
     .findByIdAndRemove(req.params.cardId)
-    .orFail(() => Error('CastError'))
+    .orFail(() => Error('Not found'))
     .then((card) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
           req.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
         }
@@ -54,14 +54,14 @@ module.exports.likeCard = (req, res) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => Error('CastError'))
+    .orFail(() => Error('Not found'))
     .populate('owner')
     .populate('likes')
     .then((card) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
           req.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
         }
@@ -78,14 +78,14 @@ module.exports.dislikeCard = (req, res) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => Error('CastError'))
+    .orFail(() => Error('Not found'))
     .populate('owner')
     .populate('likes')
     .then((card) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
           req.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
         }
