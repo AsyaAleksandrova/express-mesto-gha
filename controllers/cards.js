@@ -1,8 +1,11 @@
 const Card = require('../models/card');
 
-const handleErrorCards = (err) => {
+const handleErrorCards = (err, req) => {
   if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-    return ({ status: 404, text: 'Запрашиваемая карточка не найдена' });
+    if (req.params.cardId.length === 24) {
+      return ({ status: 404, text: 'Запрашиваемая карточка не найдена' });
+    }
+    return ({ status: 400, text: 'Переданые некорректные данные идентификатора карточки' });
   } if (err.name === 'ValidationError' || err.name === 'StrictModeError') {
     return ({ status: 400, text: `Переданые некорректные данные при создании карточки: ${err.message}` });
   }
@@ -15,11 +18,10 @@ module.exports.getCards = (req, res) => {
     .populate('owner')
     .populate('likes')
     .then((cards) => {
-      res.status(200);
-      res.send({ data: cards });
+      res.status(200).send({ data: cards });
     })
     .catch((err) => {
-      const { status, text } = handleErrorCards(err);
+      const { status, text } = handleErrorCards(err, req);
       res.status(status).send({ message: text });
     });
 };
@@ -29,11 +31,10 @@ module.exports.createCard = (req, res) => {
   Card
     .create({ name, link })
     .then((card) => {
-      res.status(200);
-      res.send({ data: card });
+      res.status(200).send({ data: card });
     })
     .catch((err) => {
-      const { status, text } = handleErrorCards(err);
+      const { status, text } = handleErrorCards(err, req);
       res.status(status).send({ message: text });
     });
 };
@@ -42,11 +43,14 @@ module.exports.deleteCard = (req, res) => {
   Card
     .findByIdAndRemove(req.params.cardId)
     .then((card) => {
-      res.status(200);
-      res.send({ data: card });
+      if (card) {
+        res.status(200).send({ data: card });
+      } else {
+        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+      }
     })
     .catch((err) => {
-      const { status, text } = handleErrorCards(err);
+      const { status, text } = handleErrorCards(err, req);
       res.status(status).send({ message: text });
     });
 };
@@ -61,11 +65,14 @@ module.exports.likeCard = (req, res) => {
     .populate('owner')
     .populate('likes')
     .then((card) => {
-      res.status(200);
-      res.send({ data: card });
+      if (card) {
+        res.status(200).send({ data: card });
+      } else {
+        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+      }
     })
     .catch((err) => {
-      const { status, text } = handleErrorCards(err);
+      const { status, text } = handleErrorCards(err, req);
       res.status(status).send({ message: text });
     });
 };
@@ -80,11 +87,14 @@ module.exports.dislikeCard = (req, res) => {
     .populate('owner')
     .populate('likes')
     .then((card) => {
-      res.status(200);
-      res.send({ data: card });
+      if (card) {
+        res.status(200).send({ data: card });
+      } else {
+        res.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+      }
     })
     .catch((err) => {
-      const { status, text } = handleErrorCards(err);
+      const { status, text } = handleErrorCards(err, req);
       res.status(status).send({ message: text });
     });
 };
