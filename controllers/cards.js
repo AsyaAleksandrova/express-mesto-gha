@@ -12,6 +12,8 @@ const handleErrorCards = (err) => {
 module.exports.getCards = (req, res) => {
   Card
     .find({})
+    .populate('owner')
+    .populate('likes')
     .then((cards) => {
       res.status(200);
       res.send({ data: cards });
@@ -56,6 +58,8 @@ module.exports.likeCard = (req, res) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
+    .populate('owner')
+    .populate('likes')
     .then((card) => {
       res.status(200);
       res.send({ data: card });
@@ -73,6 +77,8 @@ module.exports.dislikeCard = (req, res) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
+    .populate('owner')
+    .populate('likes')
     .then((card) => {
       res.status(200);
       res.send({ data: card });
