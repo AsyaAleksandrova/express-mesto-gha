@@ -39,9 +39,9 @@ module.exports.deleteCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
-          req.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+          req.status(404).send({ message: 'Запрашиваемая карточка не найдена.' });
         }
-        res.status(400).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+        res.status(400).send({ message: 'Переданые некорректные данные идентификатора карточки.' });
       }
       res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
@@ -63,9 +63,9 @@ module.exports.likeCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
-          req.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+          req.status(404).send({ message: 'Запрашиваемая карточка не найдена.' });
         }
-        res.status(400).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+        res.status(400).send({ message: 'Переданые некорректные данные идентификатора карточки.' });
       }
       res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
@@ -87,9 +87,9 @@ module.exports.dislikeCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
-          req.status(404).send({ message: 'Запрашиваемая карточка не найдена' });
+          req.status(404).send({ message: 'Запрашиваемая карточка не найдена.' });
         }
-        res.status(400).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+        res.status(400).send({ message: 'Переданые некорректные данные идентификатора карточки.' });
       }
       res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
