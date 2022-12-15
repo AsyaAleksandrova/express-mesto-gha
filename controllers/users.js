@@ -1,8 +1,11 @@
 const User = require('../models/user');
 
-const handleErrorUser = (err) => {
+const handleErrorUser = (err, req) => {
   if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-    return ({ status: 404, text: 'Запрашиваемый пользователь не найден' });
+    if (req.params.userId.length === 24) {
+      return ({ status: 404, text: 'Запрашиваемый пользователь не найден' });
+    }
+    return ({ status: 400, text: 'Переданые некорректные данные идентификатора пользователя' });
   } if (err.name === 'ValidationError' || err.name === 'StrictModeError') {
     return ({ status: 400, text: `Переданые некорректные данные при создании пользователя: ${err.message}` });
   }
@@ -17,7 +20,7 @@ module.exports.getUsers = (req, res) => {
       res.send({ data: users });
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err);
+      const { status, text } = handleErrorUser(err, req);
       res.status(status).send({ message: text });
     });
 };
@@ -26,11 +29,14 @@ module.exports.getUserById = (req, res) => {
   User
     .findById(req.params.userId)
     .then((user) => {
-      res.status(200);
-      res.send({ data: user });
+      if (user) {
+        res.status(200).send({ data: user });
+      } else {
+        res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+      }
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err);
+      const { status, text } = handleErrorUser(err, req);
       res.status(status).send({ message: text });
     });
 };
@@ -40,47 +46,44 @@ module.exports.createUser = (req, res) => {
   User
     .create({ name, about, avatar })
     .then((user) => {
-      res.status(200);
-      res.send({ data: user });
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err);
+      const { status, text } = handleErrorUser(err, req);
       res.status(status).send({ message: text });
     });
 };
 
 module.exports.updateUserInfo = (req, res) => {
   const { name, about } = req.body;
-  if (name && about) {
-    User
-      .findByIdAndUpdate(req.user._id, { name, about })
-      .then((user) => {
-        res.status(200);
-        res.send({ data: user });
-      })
-      .catch((err) => {
-        const { status, text } = handleErrorUser(err);
-        res.status(status).send({ message: text });
-      });
-  } else {
-    res.status(400).send({ message: 'Не заполнены данные для обновления профиля' });
-  }
+  User
+    .findByIdAndUpdate(
+      req.user._id,
+      { name, about },
+      { new: true, runValidators: true, upsert: false },
+    )
+    .then((user) => {
+      res.status(200).send({ data: user });
+    })
+    .catch((err) => {
+      const { status, text } = handleErrorUser(err, req);
+      res.status(status).send({ message: text });
+    });
 };
 
 module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
-  if (avatar) {
-    User
-      .findByIdAndUpdate(req.user._id, { avatar })
-      .then((user) => {
-        res.status(200);
-        res.send({ data: user });
-      })
-      .catch((err) => {
-        const { status, text } = handleErrorUser(err);
-        res.status(status).send({ message: text });
-      });
-  } else {
-    res.status(400).send({ message: 'Не заполнены данные для обновления профиля' });
-  }
+  User
+    .findByIdAndUpdate(
+      req.user._id,
+      { avatar },
+      { new: true, runValidators: true, upsert: false },
+    )
+    .then((user) => {
+      res.status(200).send({ data: user });
+    })
+    .catch((err) => {
+      const { status, text } = handleErrorUser(err, req);
+      res.status(status).send({ message: text });
+    });
 };
