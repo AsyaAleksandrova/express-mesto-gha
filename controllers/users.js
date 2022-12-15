@@ -1,17 +1,5 @@
 const User = require('../models/user');
 
-const handleErrorUser = (err, req) => {
-  if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-    if (req.params.userId.length === 24) {
-      return ({ status: 404, text: 'Запрашиваемый пользователь не найден' });
-    }
-    return ({ status: 400, text: 'Переданые некорректные данные идентификатора пользователя' });
-  } if (err.name === 'ValidationError' || err.name === 'StrictModeError') {
-    return ({ status: 400, text: `Переданые некорректные данные при создании пользователя: ${err.message}` });
-  }
-  return ({ status: 500, text: `Что-то пошло не так: ${err.message}` });
-};
-
 module.exports.getUsers = (req, res) => {
   User
     .find({})
@@ -20,24 +8,25 @@ module.exports.getUsers = (req, res) => {
       res.send({ data: users });
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err, req);
-      res.status(status).send({ message: text });
+      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
 module.exports.getUserById = (req, res) => {
   User
     .findById(req.params.userId)
+    .orFail(() => Error('CastError'))
     .then((user) => {
-      if (user) {
-        res.status(200).send({ data: user });
-      } else {
-        res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
-      }
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err, req);
-      res.status(status).send({ message: text });
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
+        if (req.params.userId.length === 24) {
+          res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+        }
+        res.status(400).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
+      }
+      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -49,8 +38,10 @@ module.exports.createUser = (req, res) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err, req);
-      res.status(status).send({ message: text });
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: `Переданые некорректные данные при создании пользователя: ${err.message}` });
+      }
+      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -66,8 +57,10 @@ module.exports.updateUserInfo = (req, res) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err, req);
-      res.status(status).send({ message: text });
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      }
+      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -83,7 +76,9 @@ module.exports.updateUserAvatar = (req, res) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
-      const { status, text } = handleErrorUser(err, req);
-      res.status(status).send({ message: text });
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      }
+      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
