@@ -57,17 +57,10 @@ module.exports.updateUserInfo = (req, res) => {
       { name, about },
       { new: true, runValidators: true, upsert: false },
     )
-    .orFail()
     .then((user) => {
       res.status(ERROR_CODE_OK).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-        if (req.params.userId.length === 24) {
-          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемый пользователь не найден' });
-        }
-        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
-      }
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
       }
@@ -83,17 +76,10 @@ module.exports.updateUserAvatar = (req, res) => {
       { avatar },
       { new: true, runValidators: true, upsert: false },
     )
-    .orFail()
     .then((user) => {
       res.status(ERROR_CODE_OK).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-        if (req.params.userId.length === 24) {
-          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемый пользователь не найден' });
-        }
-        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
-      }
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
       }
