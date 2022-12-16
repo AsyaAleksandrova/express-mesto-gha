@@ -1,32 +1,36 @@
 const User = require('../models/user');
 
+const ERROR_CODE_VALID = 400;
+const ERROR_CODE_FIND = 404;
+const ERROR_CODE_OTHER = 500;
+const ERROR_CODE_OK = 200;
+
 module.exports.getUsers = (req, res) => {
   User
     .find({})
     .then((users) => {
-      res.status(200);
-      res.send({ data: users });
+      res.status(ERROR_CODE_OK).send({ data: users });
     })
     .catch((err) => {
-      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
 module.exports.getUserById = (req, res) => {
   User
     .findById(req.params.userId)
-    .orFail(() => Error('Not found'))
+    .orFail()
     .then((user) => {
-      res.status(200).send({ data: user });
+      res.status(ERROR_CODE_OK).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
         if (req.params.userId.length === 24) {
-          res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемый пользователь не найден' });
         }
-        res.status(400).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
+        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
       }
-      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -35,13 +39,13 @@ module.exports.createUser = (req, res) => {
   User
     .create({ name, about, avatar })
     .then((user) => {
-      res.status(200).send({ data: user });
+      res.status(ERROR_CODE_OK).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: `Переданые некорректные данные при создании пользователя: ${err.message}` });
+        res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при создании пользователя: ${err.message}` });
       }
-      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -53,14 +57,21 @@ module.exports.updateUserInfo = (req, res) => {
       { name, about },
       { new: true, runValidators: true, upsert: false },
     )
+    .orFail()
     .then((user) => {
-      res.status(200).send({ data: user });
+      res.status(ERROR_CODE_OK).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
+        if (req.params.userId.length === 24) {
+          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемый пользователь не найден' });
+        }
+        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
       }
-      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      if (err.name === 'ValidationError') {
+        res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      }
+      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -72,13 +83,20 @@ module.exports.updateUserAvatar = (req, res) => {
       { avatar },
       { new: true, runValidators: true, upsert: false },
     )
+    .orFail()
     .then((user) => {
-      res.status(200).send({ data: user });
+      res.status(ERROR_CODE_OK).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
+        if (req.params.userId.length === 24) {
+          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемый пользователь не найден' });
+        }
+        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
       }
-      res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      if (err.name === 'ValidationError') {
+        res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      }
+      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
