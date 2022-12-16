@@ -1,6 +1,9 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const ERROR_CODE_VALID = 400;
+const ERROR_CODE_AUTH = 401;
 const ERROR_CODE_FIND = 404;
 const ERROR_CODE_OTHER = 500;
 const ERROR_CODE_OK = 200;
@@ -35,9 +38,14 @@ module.exports.getUserById = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User
-    .create({ name, about, avatar })
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => User.create({
+      name: req.body.name,
+      about: req.body.about,
+      avatar: req.body.avatar,
+      email: req.body.avatar,
+      password: hash,
+    }))
     .then((user) => {
       res.status(ERROR_CODE_OK).send({ data: user });
     })
@@ -47,6 +55,24 @@ module.exports.createUser = (req, res) => {
       } else {
         res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
+    });
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+  User
+    .findOne({ email })
+    .orFail('Неправильные почта или пароль')
+    .then((user) => {
+      if (!bcrypt.compare(password, user.password)) {
+        res.status(ERROR_CODE_AUTH).send({ message: 'Неправильные почта или пароль' });
+      } else {
+        const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+        res.status(ERROR_CODE_OK).cookie('token', { token }, { maxAge: 3600000 * 24 * 7 });
+      }
+    })
+    .catch((err) => {
+      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
