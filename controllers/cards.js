@@ -37,7 +37,7 @@ module.exports.deleteCard = (req, res) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
+      if (err.name === 'CastError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
           req.status(404).send({ message: 'Запрашиваемая карточка не найдена.' });
         }
@@ -61,7 +61,7 @@ module.exports.likeCard = (req, res) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
+      if (err.name === 'CastError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
           req.status(404).send({ message: 'Запрашиваемая карточка не найдена.' });
         }
@@ -85,7 +85,7 @@ module.exports.dislikeCard = (req, res) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError' || err.message === 'Not found') {
+      if (err.name === 'CastError' || err.message === 'Not found') {
         if (req.params.cardId.length === 24) {
           req.status(404).send({ message: 'Запрашиваемая карточка не найдена.' });
         }
