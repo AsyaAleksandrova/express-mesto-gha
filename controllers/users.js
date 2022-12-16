@@ -24,13 +24,13 @@ module.exports.getUserById = (req, res) => {
       res.status(ERROR_CODE_OK).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-        if (req.params.userId.length === 24) {
-          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемый пользователь не найден' });
-        }
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемый пользователь не найден' });
+      } else if (err.name === 'CastError') {
         res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора пользователя' });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -44,8 +44,9 @@ module.exports.createUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при создании пользователя: ${err.message}` });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -63,8 +64,9 @@ module.exports.updateUserInfo = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -82,7 +84,8 @@ module.exports.updateUserAvatar = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при изменении данных пользователя: ${err.message}` });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };

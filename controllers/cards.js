@@ -29,8 +29,9 @@ module.exports.createCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при создании карточки: ${err.message}` });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -42,13 +43,13 @@ module.exports.deleteCard = (req, res) => {
       res.status(ERROR_CODE_OK).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-        if (req.params.cardId.length === 24) {
-          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
-        }
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
+      } else if (err.name === 'CastError') {
         res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -66,13 +67,13 @@ module.exports.likeCard = (req, res) => {
       res.status(ERROR_CODE_OK).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-        if (req.params.cardId.length === 24) {
-          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
-        }
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
+      } else if (err.name === 'CastError') {
         res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
 
@@ -90,12 +91,12 @@ module.exports.dislikeCard = (req, res) => {
       res.status(ERROR_CODE_OK).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'DocumentNotFoundError') {
-        if (req.params.cardId.length === 24) {
-          res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
-        }
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
+      } else if (err.name === 'CastError') {
         res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+      } else {
+        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
       }
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
     });
 };
