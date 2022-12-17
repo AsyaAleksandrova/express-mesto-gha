@@ -21,14 +21,12 @@ module.exports.getUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   User
     .findById(req.params.userId)
-    .orFail()
+    .orFail(() => next(new NotFoundError('Запрашиваемый пользователь не найден')))
     .then((user) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Запрашиваемый пользователь не найден'));
-      } else if (err.name === 'CastError') {
+      if (err.name === 'CastError') {
         next(new ValidationError('Переданые некорректные данные идентификатора пользователя'));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
@@ -63,7 +61,7 @@ module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   User
     .findOne({ email })
-    .orFail('Неправильные почта или пароль')
+    .orFail(() => next(new NotFoundError('Неправильные почта или пароль')))
     .then((user) => {
       if (!bcrypt.compare(password, user.password)) {
         next(new AuthError('Неправильные почта или пароль'));

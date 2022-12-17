@@ -36,7 +36,7 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   Card
     .findByIdAndRemove(req.params.cardId)
-    .orFail()
+    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
     .then((card) => {
       res.status(200).send({ data: card });
     })
@@ -58,16 +58,14 @@ module.exports.likeCard = (req, res, next) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail()
+    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
     .populate('owner')
     .populate('likes')
     .then((card) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Запрашиваемая карточка не найдена'));
-      } else if (err.name === 'CastError') {
+      if (err.name === 'CastError') {
         next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
@@ -82,16 +80,14 @@ module.exports.dislikeCard = (req, res, next) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail()
+    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
     .populate('owner')
     .populate('likes')
     .then((card) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Запрашиваемая карточка не найдена'));
-      } else if (err.name === 'CastError') {
+      if (err.name === 'CastError') {
         next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
