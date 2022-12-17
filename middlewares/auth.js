@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
   if (!authorization) {
     next(new AuthError('Необходима авторизация'));
   }
-  const token = authorization;
+  const token = authorization.replace('Bearer ', '');
   let payload;
   try {
     payload = jwt.verify(token, JWT_STRING);
