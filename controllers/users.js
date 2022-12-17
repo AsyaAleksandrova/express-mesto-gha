@@ -38,6 +38,21 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 
+module.exports.getMyUser = (req, res, next) => {
+  User
+    .findById(req.user._id)
+    .then((user) => {
+      res.status(200).send({
+        data: {
+          name: user.name, about: user.about, avatar: user.avatar, email: user.email, _id: user._id,
+        },
+      });
+    })
+    .catch((err) => {
+      next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
+    });
+};
+
 module.exports.createUser = (req, res, next) => {
   bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
@@ -68,7 +83,7 @@ module.exports.createUser = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    next(new NotFoundError('Неправильные почта или пароль'));
+    next(new ValidationError('Неправильные почта или пароль'));
   }
   User
     .findOne({ email }).select('+password')
