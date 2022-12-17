@@ -68,7 +68,7 @@ module.exports.login = (req, res) => {
         res.status(ERROR_CODE_AUTH).send({ message: 'Неправильные почта или пароль' });
       } else {
         const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-        res.status(ERROR_CODE_OK).cookie('token', { token }, { maxAge: 3600000 * 24 * 7 });
+        res.status(ERROR_CODE_OK).cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).end();
       }
     })
     .catch((err) => {
