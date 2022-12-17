@@ -83,11 +83,11 @@ module.exports.createUser = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    next(new AuthError('Неправильные почта или пароль'));
+    next(new ValidationError('Неправильные почта или пароль'));
   }
   User
     .findOne({ email }).select('+password')
-    .orFail(() => next(new AuthError('Неправильные почта или пароль')))
+    .orFail(() => next(new NotFoundError('Неправильные почта или пароль')))
     .then((user) => {
       if (!bcrypt.compare(password, user.password)) {
         next(new AuthError('Неправильные почта или пароль'));
