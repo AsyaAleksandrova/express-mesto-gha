@@ -1,7 +1,8 @@
 const Card = require('../models/card');
-const OtherServerError = require('../errors/OtherServerError'); // 500 ERROR_CODE_OTHER
-const NotFoundError = require('../errors/NotFoundError'); // 404 ERROR_CODE_FIND
-const ValidationError = require('../errors/ValidationError'); // 400 ERROR_CODE_VALID
+const OtherServerError = require('../errors/OtherServerError'); // 500
+const NotFoundError = require('../errors/NotFoundError'); // 404
+const ValidationError = require('../errors/ValidationError'); // 400
+const ForbiddenError = require('../errors/ForbiddenError'); // 403
 
 module.exports.getCards = (req, res, next) => {
   Card
@@ -34,6 +35,9 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.deleteCard = (req, res, next) => {
+  if (!Card.findById(req.params.cardId).owner._id === req.user._id) {
+    next(new ForbiddenError('У вас не достаточно прав для удаления этой карточки'));
+  }
   Card
     .findByIdAndRemove(req.params.cardId)
     .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
