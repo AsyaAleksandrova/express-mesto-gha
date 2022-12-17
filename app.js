@@ -5,8 +5,8 @@ const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/NotFoundError');
-const validateNewUser = require('./middlewares/validations');
-const validateAuth = require('./middlewares/validations');
+const validateNewUser = require('./middlewares/validateNewUser');
+const validateAuth = require('./middlewares/validateAuth');
 const errorHandler = require('./middlewares/errorhandler');
 
 const { PORT = 3000 } = process.env;
