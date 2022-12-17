@@ -5,11 +5,13 @@ const User = require('../models/user');
 const JWT_STRING = 'Nsl8TZXJzSYmL7TC5v5fRSaUPrUMas4TAap0NKqjqnaH3Q+0gSETQRRQz/3FYxW1zsQ8FC6QkwS2ZM4+auHH42C+dkbF1aA';
 
 const MONGO_DUPLICATE_ERROR_CODE = 11000;
-const OtherServerError = require('../errors/OtherServerError'); // 500 ERROR_CODE_OTHER
-const NotFoundError = require('../errors/NotFoundError'); // 404 ERROR_CODE_FIND
-const ValidationError = require('../errors/ValidationError'); // 400 ERROR_CODE_VALID
-const AuthError = require('../errors/AuthError'); // 401 ERROR_CODE_AUTH
-const ConflictError = require('../errors/ConflictError'); // 409
+const OtherServerError = require('../errors/OtherServerError');
+const NotFoundError = require('../errors/NotFoundError');
+const ValidationError = require('../errors/ValidationError');
+const AuthError = require('../errors/AuthError');
+const ConflictError = require('../errors/ConflictError');
+
+const MESSAGE_AUTH = 'Неправильные почта или пароль';
 
 module.exports.getUsers = (req, res, next) => {
   User
@@ -83,14 +85,14 @@ module.exports.createUser = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    next(new ValidationError('Неправильные почта или пароль'));
+    next(new ValidationError(MESSAGE_AUTH));
   }
   User
     .findOne({ email }).select('+password')
-    .orFail(() => next(new AuthError('Неправильные почта или пароль')))
+    .orFail(() => next(new AuthError(MESSAGE_AUTH)))
     .then((user) => {
       if (!bcrypt.compare(password, user.password)) {
-        next(new AuthError('Неправильные почта или пароль'));
+        next(new AuthError(MESSAGE_AUTH));
       } else {
         const token = jwt.sign({ _id: user._id }, JWT_STRING, { expiresIn: '7d' });
         res.status(200).send({ token });

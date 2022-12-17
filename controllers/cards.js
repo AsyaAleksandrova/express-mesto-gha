@@ -1,8 +1,11 @@
 const Card = require('../models/card');
-const OtherServerError = require('../errors/OtherServerError'); // 500
-const NotFoundError = require('../errors/NotFoundError'); // 404
-const ValidationError = require('../errors/ValidationError'); // 400
-const ForbiddenError = require('../errors/ForbiddenError'); // 403
+const OtherServerError = require('../errors/OtherServerError');
+const NotFoundError = require('../errors/NotFoundError');
+const ValidationError = require('../errors/ValidationError');
+const ForbiddenError = require('../errors/ForbiddenError');
+
+const MESSAGE_NOT_FOUND = 'Запрашиваемая карточка не найдена';
+const MESSAGE_VALIDATION_ID = 'Переданые некорректные данные идентификатора карточки';
 
 module.exports.getCards = (req, res, next) => {
   Card
@@ -37,7 +40,7 @@ module.exports.createCard = (req, res, next) => {
 module.exports.checkRights = (req, res, next) => {
   Card
     .findById(req.params.cardId)
-    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
+    .orFail(() => next(new NotFoundError(MESSAGE_NOT_FOUND)))
     .then((card) => {
       const { owner } = card;
       if (owner.toString() !== req.user._id) {
@@ -58,9 +61,9 @@ module.exports.deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Запрашиваемая карточка не найдена'));
+        next(new NotFoundError(MESSAGE_NOT_FOUND));
       } else if (err.name === 'CastError') {
-        next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
+        next(new ValidationError(MESSAGE_VALIDATION_ID));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
@@ -74,7 +77,7 @@ module.exports.likeCard = (req, res, next) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
+    .orFail(() => next(new NotFoundError(MESSAGE_NOT_FOUND)))
     .populate('owner')
     .populate('likes')
     .then((card) => {
@@ -82,7 +85,7 @@ module.exports.likeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
+        next(new ValidationError(MESSAGE_VALIDATION_ID));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
@@ -96,7 +99,7 @@ module.exports.dislikeCard = (req, res, next) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
+    .orFail(() => next(new NotFoundError(MESSAGE_NOT_FOUND)))
     .populate('owner')
     .populate('likes')
     .then((card) => {
@@ -104,7 +107,7 @@ module.exports.dislikeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
+        next(new ValidationError(MESSAGE_VALIDATION_ID));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
