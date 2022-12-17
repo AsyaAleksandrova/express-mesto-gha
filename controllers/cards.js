@@ -1,11 +1,9 @@
 const Card = require('../models/card');
+const OtherServerError = require('../errors/OtherServerError'); // 500 ERROR_CODE_OTHER
+const NotFoundError = require('../errors/NotFoundError'); // 404 ERROR_CODE_FIND
+const ValidationError = require('../errors/ValidationError'); // 400 ERROR_CODE_VALID
 
-const ERROR_CODE_VALID = 400;
-const ERROR_CODE_FIND = 404;
-const ERROR_CODE_OTHER = 500;
-const ERROR_CODE_OK = 200;
-
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card
     .find({})
     .populate('owner')
@@ -14,46 +12,46 @@ module.exports.getCards = (req, res) => {
       res.status(200).send({ data: cards });
     })
     .catch((err) => {
-      res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
+      next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
     });
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   Card
     .create({ name, link, owner })
     .then((card) => {
-      res.status(ERROR_CODE_OK).send({ data: card });
+      res.status(200).send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_VALID).send({ message: `Переданые некорректные данные при создании карточки: ${err.message}` });
+        next(new ValidationError(`Переданые некорректные данные при создании карточки: ${err.message}`));
       } else {
-        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
+        next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card
     .findByIdAndRemove(req.params.cardId)
     .orFail()
     .then((card) => {
-      res.status(ERROR_CODE_OK).send({ data: card });
+      res.status(200).send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {
-        res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
+        next(new NotFoundError('Запрашиваемая карточка не найдена'));
       } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+        next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
       } else {
-        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
+        next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
     });
 };
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card
     .findByIdAndUpdate(
       req.params.cardId,
@@ -64,20 +62,20 @@ module.exports.likeCard = (req, res) => {
     .populate('owner')
     .populate('likes')
     .then((card) => {
-      res.status(ERROR_CODE_OK).send({ data: card });
+      res.status(200).send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {
-        res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
+        next(new NotFoundError('Запрашиваемая карточка не найдена'));
       } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+        next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
       } else {
-        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
+        next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card
     .findByIdAndUpdate(
       req.params.cardId,
@@ -88,15 +86,15 @@ module.exports.dislikeCard = (req, res) => {
     .populate('owner')
     .populate('likes')
     .then((card) => {
-      res.status(ERROR_CODE_OK).send({ data: card });
+      res.status(200).send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {
-        res.status(ERROR_CODE_FIND).send({ message: 'Запрашиваемая карточка не найдена' });
+        next(new NotFoundError('Запрашиваемая карточка не найдена'));
       } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_VALID).send({ message: 'Переданые некорректные данные идентификатора карточки' });
+        next(new ValidationError('Переданые некорректные данные идентификатора карточки'));
       } else {
-        res.status(ERROR_CODE_OTHER).send({ message: `Что-то пошло не так: ${err.message}` });
+        next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
     });
 };

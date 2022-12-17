@@ -1,10 +1,12 @@
 const express = require('express');
+// const router = require('express').Router();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const { celebrate, Joi, errors } = require('celebrate');
-const { login, createUser } = require('./controllers/users');
-const auth = require('./middlewares/auth');
+// const { celebrate, Joi, errors } = require('celebrate');
+const { createUser } = require('./controllers/users');
+// const auth = require('./middlewares/auth');
+const errorHandler = require('./middlewares/errorhandler');
 
 const { PORT = 3000 } = process.env;
 
@@ -27,25 +29,14 @@ app.use((req, res, next) => {
 });
 
 app.use(cookieParser());
-app.post('/signup', celebrate({
-  params: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(/https?:[\S]{1, }/),
-    email: Joi.string().required().regex(/[\S]{1, }@[\w]{1, }\.[\w]{1, 3}/),
-    password: Joi.string().required().min(8),
-  }),
-}), createUser);
-app.post('/signin', login);
-app.use(auth);
+app.post('/signup', createUser);
+// router.post('/signin', login);
+
 app.use('/', require('./routes/users'));
 app.use('/', require('./routes/cards'));
+// app.use(errors());
 
-app.use(errors());
-
-app.use((req, res) => {
-  res.status(404).send({ message: 'Не корректно задан адрес запроса' });
-});
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
