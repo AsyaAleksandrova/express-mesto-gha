@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const { celebrate, Joi, errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const NotFoundError = require('./errors/NotFoundError');
 const errorHandler = require('./middlewares/errorhandler');
 
 const { PORT = 3000 } = process.env;
@@ -37,6 +38,10 @@ app.post('/signin', celebrate({
 
 app.use('/', auth, require('./routes/users'));
 app.use('/', auth, require('./routes/cards'));
+
+app.use((req, res, next) => {
+  next(new NotFoundError('Не корректно задан адрес запроса'));
+});
 
 app.use(errors());
 

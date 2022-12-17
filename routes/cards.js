@@ -1,8 +1,9 @@
 const router = require('express').Router();
+const { ObjectId } = require('mongoose').Types;
 const { celebrate, Joi } = require('celebrate');
 
 const {
-  getCards, createCard, deleteCard, likeCard, dislikeCard,
+  getCards, createCard, deleteCard, likeCard, dislikeCard, checkRights,
 } = require('../controllers/cards');
 
 router.get('/cards', getCards);
@@ -14,17 +15,36 @@ router.post('/cards', celebrate({
   }),
 }), createCard);
 
-router.delete('/cards/:cardId', deleteCard);
+router.delete('/cards/:cardId', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().custom((value, helpers) => {
+      if (ObjectId.isValid(value)) {
+        return value;
+      }
+      return helpers.message('Невалидный id');
+    }),
+  }),
+}), checkRights, deleteCard);
 
 router.put('/cards/:cardId/likes', celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().length(24),
+    cardId: Joi.string().required().custom((value, helpers) => {
+      if (ObjectId.isValid(value)) {
+        return value;
+      }
+      return helpers.message('Невалидный id');
+    }),
   }),
 }), likeCard);
 
 router.delete('/cards/:cardId/likes', celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().length(24),
+    cardId: Joi.string().required().custom((value, helpers) => {
+      if (ObjectId.isValid(value)) {
+        return value;
+      }
+      return helpers.message('Невалидный id');
+    }),
   }),
 }), dislikeCard);
 

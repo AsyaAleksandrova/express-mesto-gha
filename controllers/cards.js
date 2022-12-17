@@ -34,13 +34,25 @@ module.exports.createCard = (req, res, next) => {
     });
 };
 
+module.exports.checkRights = (req, res, next) => {
+  Card
+    .findById(req.params.cardId)
+    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
+    .then((card) => {
+      const { owner } = card;
+      if (owner.toString() !== req.user._id) {
+        next(new ForbiddenError('Отсутствуют права на удаление карточки'));
+      }
+      next();
+    })
+    .catch((err) => {
+      next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
+    });
+};
+
 module.exports.deleteCard = (req, res, next) => {
-  if (!Card.findById(req.params.cardId).owner._id === req.user._id) {
-    next(new ForbiddenError('У вас не достаточно прав для удаления этой карточки'));
-  }
   Card
     .findByIdAndRemove(req.params.cardId)
-    .orFail(() => next(new NotFoundError('Запрашиваемая карточка не найдена')))
     .then((card) => {
       res.status(200).send({ data: card });
     })
