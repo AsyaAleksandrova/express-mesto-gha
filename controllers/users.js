@@ -87,7 +87,7 @@ module.exports.login = (req, res, next) => {
   }
   User
     .findOne({ email }).select('+password')
-    .orFail(() => next(new NotFoundError('Неправильные почта или пароль')))
+    .orFail(() => next(new AuthError('Неправильные почта или пароль')))
     .then((user) => {
       if (!bcrypt.compare(password, user.password)) {
         next(new AuthError('Неправильные почта или пароль'));
