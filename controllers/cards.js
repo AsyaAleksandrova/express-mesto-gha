@@ -10,8 +10,6 @@ const MESSAGE_VALIDATION_ID = 'Переданые некорректные да�
 module.exports.getCards = (req, res, next) => {
   Card
     .find({})
-    .populate('owner')
-    .populate('likes')
     .then((cards) => {
       res.status(200).send({ data: cards });
     })
@@ -40,11 +38,12 @@ module.exports.createCard = (req, res, next) => {
 module.exports.checkRights = (req, res, next) => {
   Card
     .findById(req.params.cardId)
-    .orFail(() => next(new NotFoundError(MESSAGE_NOT_FOUND)))
+    .orFail(new NotFoundError(MESSAGE_NOT_FOUND))
     .then((card) => {
       const { owner } = card;
       if (owner.toString() !== req.user._id) {
         next(new ForbiddenError('Отсутствуют права на удаление карточки'));
+        return;
       }
       next();
     })
@@ -60,9 +59,7 @@ module.exports.deleteCard = (req, res, next) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        next(new NotFoundError(MESSAGE_NOT_FOUND));
-      } else if (err.name === 'CastError') {
+      if (err.name === 'CastError') {
         next(new ValidationError(MESSAGE_VALIDATION_ID));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
@@ -77,7 +74,7 @@ module.exports.likeCard = (req, res, next) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => next(new NotFoundError(MESSAGE_NOT_FOUND)))
+    .orFail(new NotFoundError(MESSAGE_NOT_FOUND))
     .populate('owner')
     .populate('likes')
     .then((card) => {
@@ -99,7 +96,7 @@ module.exports.dislikeCard = (req, res, next) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => next(new NotFoundError(MESSAGE_NOT_FOUND)))
+    .orFail(new NotFoundError(MESSAGE_NOT_FOUND))
     .populate('owner')
     .populate('likes')
     .then((card) => {

@@ -27,7 +27,7 @@ module.exports.getUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   User
     .findById(req.params.userId)
-    .orFail(() => next(new NotFoundError('Запрашиваемый пользователь не найден')))
+    .orFail(new NotFoundError('Запрашиваемый пользователь не найден'))
     .then((user) => {
       res.status(200).send({ data: user });
     })
@@ -44,11 +44,7 @@ module.exports.getMyUser = (req, res, next) => {
   User
     .findById(req.user._id)
     .then((user) => {
-      res.status(200).send({
-        data: {
-          name: user.name, about: user.about, avatar: user.avatar, email: user.email, _id: user._id,
-        },
-      });
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
       next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
@@ -57,13 +53,7 @@ module.exports.getMyUser = (req, res, next) => {
 
 module.exports.createUser = (req, res, next) => {
   bcrypt.hash(req.body.password, 10)
-    .then((hash) => User.create({
-      name: req.body.name,
-      about: req.body.about,
-      avatar: req.body.avatar,
-      email: req.body.email,
-      password: hash,
-    }))
+    .then((hash) => User.create({ ...req.body, password: hash }))
     .then((user) => {
       res.status(201).send({
         data: {
@@ -84,20 +74,18 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    next(new ValidationError(MESSAGE_AUTH));
-  }
   User
     .findOne({ email }).select('+password')
-    .orFail(() => next(new AuthError(MESSAGE_AUTH)))
-    .then((user) => {
-      if (!bcrypt.compare(password, user.password)) {
-        next(new AuthError(MESSAGE_AUTH));
-      } else {
-        const token = jwt.sign({ _id: user._id }, JWT_STRING, { expiresIn: '7d' });
-        res.status(200).send({ token });
-      }
-    })
+    .orFail(new AuthError(MESSAGE_AUTH))
+    .then((user) => bcrypt.compare(password, user.password)
+      .then((compare) => {
+        if (!compare) {
+          next(new AuthError(MESSAGE_AUTH));
+        } else {
+          const token = jwt.sign({ _id: user._id }, JWT_STRING, { expiresIn: '7d' });
+          res.status(200).send({ token });
+        }
+      }))
     .catch((err) => {
       next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
     });
@@ -109,7 +97,7 @@ module.exports.updateUserInfo = (req, res, next) => {
     .findByIdAndUpdate(
       req.user._id,
       { name, about },
-      { new: true, runValidators: true, upsert: false },
+      { new: true, runValidators: true },
     )
     .then((user) => {
       res.status(200).send({ data: user });
@@ -129,7 +117,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
     .findByIdAndUpdate(
       req.user._id,
       { avatar },
-      { new: true, runValidators: true, upsert: false },
+      { new: true, runValidators: true },
     )
     .then((user) => {
       res.status(200).send({ data: user });
