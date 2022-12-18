@@ -48,7 +48,7 @@ module.exports.checkRights = (req, res, next) => {
       next();
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFound') {
+      if (err.name === 'DocumentNotFoundError') {
         next(new NotFoundError(MESSAGE_NOT_FOUND));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
@@ -78,7 +78,7 @@ module.exports.likeCard = (req, res, next) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(new NotFoundError(MESSAGE_NOT_FOUND))
+    .orFail()
     .populate('owner')
     .populate('likes')
     .then((card) => {
@@ -87,6 +87,8 @@ module.exports.likeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError(MESSAGE_VALIDATION_ID));
+      } else if (err.name === 'DocumentNotFoundError') {
+        next(new NotFoundError(MESSAGE_NOT_FOUND));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
@@ -100,7 +102,7 @@ module.exports.dislikeCard = (req, res, next) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(new NotFoundError(MESSAGE_NOT_FOUND))
+    .orFail()
     .populate('owner')
     .populate('likes')
     .then((card) => {
@@ -109,6 +111,8 @@ module.exports.dislikeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError(MESSAGE_VALIDATION_ID));
+      } else if (err.name === 'DocumentNotFoundError') {
+        next(new NotFoundError(MESSAGE_NOT_FOUND));
       } else {
         next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
       }
