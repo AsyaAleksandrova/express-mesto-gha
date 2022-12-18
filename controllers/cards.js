@@ -38,7 +38,7 @@ module.exports.createCard = (req, res, next) => {
 module.exports.checkRights = (req, res, next) => {
   Card
     .findById(req.params.cardId)
-    .orFail(new NotFoundError(MESSAGE_NOT_FOUND))
+    .orFail()
     .then((card) => {
       const { owner } = card;
       if (owner.toString() !== req.user._id) {
@@ -48,7 +48,11 @@ module.exports.checkRights = (req, res, next) => {
       next();
     })
     .catch((err) => {
-      next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
+      if (err.name === 'DocumentNotFound') {
+        next(new NotFoundError(MESSAGE_NOT_FOUND));
+      } else {
+        next(new OtherServerError(`Что-то пошло не так: ${err.message}`));
+      }
     });
 };
 
